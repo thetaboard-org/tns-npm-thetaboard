@@ -1,6 +1,6 @@
 {
   "name": "thetaboard-tns",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Theta Name Service",
   "main": "index.js",
   "scripts": {
@@ -11,5 +11,9 @@
   "dependencies": {
     "@ensdomains/address-encoder": "^0.2.15",
     "ethers": "^5.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thetaboard-org/tns-npm"
   }
 }

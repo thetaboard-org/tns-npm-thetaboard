@@ -129,7 +129,6 @@ export const registerDomain = async(domain, secret) => {
 
         const tx = await controllerContract.registerWithConfig(domain, signerAddress, secret, ensResolver, signerAddress, {value: price, gasPrice: 4000000000000, gasLimit: 2000000})
         tx.wait(1)
-        debugger
         return {
             tx: tx
         }
@@ -152,9 +151,7 @@ export const commitDomain = async(domain, secret) => {
             signerAddress
         )
         var tx = await controllerContract.commit(commitment)
-        debugger
         tx.wait(1)
-        debugger
         return {
             tx: tx
         }
