@@ -13,13 +13,13 @@ const provider = new ethers.providers.Web3Provider(window.ethereum)
 const signer = provider.getSigner()
 const address = signer.getAddress()
 
-const ensResolver = "0x4eC0a32948c8adE33383aD15d1d342DbF57e3D52"
+const ensResolver = "0x6f26Cf9D0968dA19d7AA85Cb69d088746bFA93B0"
 
-const registryContract = new ethers.Contract("0x3419daBF7D559BC2825A3Dc9eEAA28041b895f88", registryABI, signer)
-const registrarContract = new ethers.Contract("0xBF031068e4C15bB7318866F53c381CdacDf4a3d6", registrarABI, signer)
-const resolverContract = new ethers.Contract("0x4eC0a32948c8adE33383aD15d1d342DbF57e3D52", resolverABI, signer)
-const controllerContract = new ethers.Contract("0x2Eac65E5A14043D8534BaF98F9c531CE1dbf83ea", controllerABI, signer)
-const reverseRegistrarContract = new ethers.Contract("0x3CCfe39936933aF921556D80c6c958275DC2F47A", reverseABI, signer)
+const registryContract = new ethers.Contract("0xf1ea88e6AFE2fc6502Ef71aE794D7555C6aedA2d", registryABI, signer)
+const registrarContract = new ethers.Contract("0x7647BDAE510a2f0060C49D7beC783547b90DF2f9", registrarABI, signer)
+const resolverContract = new ethers.Contract("0x6f26Cf9D0968dA19d7AA85Cb69d088746bFA93B0", resolverABI, signer)
+const controllerContract = new ethers.Contract("0x8ff4635F7bC36c08FbD68926A90d9f0bB7E9581C", controllerABI, signer)
+const reverseRegistrarContract = new ethers.Contract("0xa55706e1deC351eE44fF6493Bdb9e5BdA8588f20", reverseABI, signer)
 
 // Checks if domain is available. 
 export const isDomainAvailable = async(domain) => {
@@ -145,14 +145,12 @@ export const registerDomain = async(domain, secret) => {
 export const commitDomain = async(domain, secret) => {
     try {
         const signerAddress = await signer.getAddress()
-        debugger
         const commitment = await controllerContract.makeCommitmentWithConfig(domain, 
             signerAddress, 
             secret, 
             ensResolver, 
             signerAddress
         )
-        debugger
         var tx = await controllerContract.commit(commitment)
         debugger
         tx.wait(1)
@@ -171,7 +169,6 @@ export const commitDomain = async(domain, secret) => {
 // get timestamp from commit
 export const getCommitmentTimestamp = async(domain, secret) => {
     try {
-        debugger
         const signerAddress = await signer.getAddress()
         var commitment = await controllerContract.makeCommitmentWithConfig(domain, 
             signerAddress, 
@@ -179,10 +176,8 @@ export const getCommitmentTimestamp = async(domain, secret) => {
             ensResolver, 
             signerAddress)
         var commitmentTimestamp = await controllerContract.commitments(commitment)
-        debugger
-
         return {
-            commitmntTimestamp: commitmentTimestamp
+            commitmentTimestamp: commitmentTimestamp
         }
     } catch (e) {
         console.log(`Error getCommitmentTimestamp for controllerContract`, e)

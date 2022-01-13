@@ -1,6 +1,6 @@
 {
-  "name": "tns",
-  "version": "0.0.1",
+  "name": "thetaboard-tns",
+  "version": "0.0.4",
   "description": "Theta Name Service",
   "main": "index.js",
   "scripts": {
