@@ -15,5 +15,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/thetaboard-org/tns-npm"
-  }
+  },
+  "devDependencies": {}
 }
