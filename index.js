@@ -8,22 +8,59 @@ const resolverABI = require("./contracts/PublicResolver.json")
 const controllerABI = require("./contracts/RegistrarController.json")
 const reverseABI = require("./contracts/ReverseRegistrar.json")
 
+let provider, signer, address;
 
-const provider = new ethers.providers.Web3Provider(window.ethereum)
-const signer = provider.getSigner()
-const address = signer.getAddress()
+const getProvider = async() => {
+    provider = new ethers.providers.Web3Provider(window.ethereum)
+    signer = provider.getSigner()
+    address = signer.getAddress()
+}
 
-const ensResolver = "0x6f26Cf9D0968dA19d7AA85Cb69d088746bFA93B0"
+//mainnet
+const ensResolver = "0x9f0a9D6788FA98E50Ed1cA062abd1F69BC6C3A12"
+//testnet
+// const ensResolver = "0x6f26Cf9D0968dA19d7AA85Cb69d088746bFA93B0"
 
-const registryContract = new ethers.Contract("0xf1ea88e6AFE2fc6502Ef71aE794D7555C6aedA2d", registryABI, signer)
-const registrarContract = new ethers.Contract("0x7647BDAE510a2f0060C49D7beC783547b90DF2f9", registrarABI, signer)
-const resolverContract = new ethers.Contract("0x6f26Cf9D0968dA19d7AA85Cb69d088746bFA93B0", resolverABI, signer)
-const controllerContract = new ethers.Contract("0x8ff4635F7bC36c08FbD68926A90d9f0bB7E9581C", controllerABI, signer)
-const reverseRegistrarContract = new ethers.Contract("0xa55706e1deC351eE44fF6493Bdb9e5BdA8588f20", reverseABI, signer)
+const getRegistryContract = async() => {
+    //mainnet
+    return new ethers.Contract("0x6644894555B8beC6BdC1B0E6617816aF90473ea2", registryABI, signer)
+    //testnet
+    // return new ethers.Contract("0xf1ea88e6AFE2fc6502Ef71aE794D7555C6aedA2d", registryABI, signer)
+}
+
+const getRegistrarContract = async () => {
+    //mainnet
+    return new ethers.Contract("0xBB4d339a7517c81C32a01221ba51CBd5d3461A94", registrarABI, signer)
+    //testnet
+    // return new ethers.Contract("0x7647BDAE510a2f0060C49D7beC783547b90DF2f9", registrarABI, signer)
+}
+
+const getResolverContract = async () => {
+    //mainnet
+    return new ethers.Contract("0x9f0a9D6788FA98E50Ed1cA062abd1F69BC6C3A12", resolverABI, signer)
+    //testnet
+    // return new ethers.Contract("0x6f26Cf9D0968dA19d7AA85Cb69d088746bFA93B0", resolverABI, signer)
+}
+
+const getReverseRegistrarContract = async () => {
+    //mainnet
+    return new ethers.Contract("0xc14b5b150eb7AD3c2BC17DCB9bA5c076b80f73e6", reverseABI, signer)
+    //testnet
+    // return new ethers.Contract("0xa55706e1deC351eE44fF6493Bdb9e5BdA8588f20", reverseABI, signer)
+}
+
+const getControllerContract = async() => {
+    //mainnet
+    return new ethers.Contract("0x914895D9AD338A7060203acE274EBa682850cA3F", controllerABI, signer)
+    //testnet
+    // return new ethers.Contract("0x8ff4635F7bC36c08FbD68926A90d9f0bB7E9581C", controllerABI, signer)
+}
 
 // Checks if domain is available. 
 export const isDomainAvailable = async(domain) => {
     try {
+        await getProvider()
+        const controllerContract = await getControllerContract()
         const available = await controllerContract.available(domain)
         return {
             available: available
@@ -39,6 +76,8 @@ export const isDomainAvailable = async(domain) => {
 //Returns owner/registrant of domain.
 export const getRegistrant = async(domain) => {
     try {
+        await getProvider()
+        const registrarContract = await getRegistrarContract()
         const label = ethers.BigNumber.from(labelhash(domain)).toString()
         const output = await registrarContract.ownerOf(label)
         return {
@@ -55,7 +94,9 @@ export const getRegistrant = async(domain) => {
 //Returns controller of domain
 export const getController = async(domain) => {
     try {
-        const label = namehash(domain + ".theta")
+        await getProvider()
+        const registryContract = await getRegistryContract()
+        const label = namehash(domain + '.theta')
        const output = await registryContract.owner(label)
         return {
             controller: output
@@ -71,7 +112,9 @@ export const getController = async(domain) => {
 //Returns record address of domain(same as registrant address as default) || equivalent to eth address in ens.
 export const getAddressRecord = async(domain) => {
     try {
-        const label = namehash(domain + ".theta")
+        await getProvider()
+        const resolverContract = await getResolverContract()
+        const label = namehash(domain + '.theta')
         const addressRecord = await resolverContract['addr(bytes32)'](label)
         return { 
             addressRecord: addressRecord
@@ -87,7 +130,9 @@ export const getAddressRecord = async(domain) => {
 //Returns url of domain. If not set will return nothing.
 export const getText = async(domain, key) => {
     try {
-        const label = namehash(domain + ".theta")
+        await getProvider()
+        const resolverContract = await getResolverContract()
+        const label = namehash(domain + '.theta')
         const text = await resolverContract['text(bytes32,string)'](label, key)
         return {
             text: text
@@ -103,7 +148,9 @@ export const getText = async(domain, key) => {
 //Gets content hash of domain.
 export const getContentHash = async(domain) => {
     try {
-        const name = namehash(domain + ".theta")
+        await getProvider()
+        const resolverContract = await getResolverContract()
+        const name = namehash(domain + '.theta')
         const content = await resolverContract.contenthash(name)
         const { protocolType, decoded, error } = decodeContenthash(content)
         let contentHash;
@@ -124,6 +171,8 @@ export const getContentHash = async(domain) => {
  //Registers a domain.
 export const registerDomain = async(domain, secret) => {
     try {
+        await getProvider()
+        const controllerContract = await getControllerContract()
         const price = await controllerContract.rentPrice(domain)
         const signerAddress = await signer.getAddress()
 
@@ -143,6 +192,8 @@ export const registerDomain = async(domain, secret) => {
 // commit new name for registration
 export const commitDomain = async(domain, secret) => {
     try {
+        await getProvider()
+        const controllerContract = await getControllerContract()
         const signerAddress = await signer.getAddress()
         const commitment = await controllerContract.makeCommitmentWithConfig(domain, 
             signerAddress, 
@@ -166,6 +217,8 @@ export const commitDomain = async(domain, secret) => {
 // get timestamp from commit
 export const getCommitmentTimestamp = async(domain, secret) => {
     try {
+        await getProvider()
+        const controllerContract = await getControllerContract()
         const signerAddress = await signer.getAddress()
         var commitment = await controllerContract.makeCommitmentWithConfig(domain, 
             signerAddress, 
@@ -186,9 +239,12 @@ export const getCommitmentTimestamp = async(domain, secret) => {
 
 
 //Transfers controller. Registrant can change controller anytime he wants.
-export const changeController = async(domain, newAddress) => {
+export const changeController = async(_domain, newAddress) => {
     try {
-        const label = namehash(domain + ".theta")
+        await getProvider()
+        const registryContract = await getRegistryContract()
+        const domain = `${_domain.replace('.theta', '')}.theta`;
+        const label = namehash(domain)
         const tx = await registryContract.setOwner(label, newAddress)
         tx.wait(1)
         return {
@@ -205,7 +261,10 @@ export const changeController = async(domain, newAddress) => {
 //Transfers registrant. If you transfer registrant you cannot get back the domain.
 export const changeRegistrant = async(domain, newAddress) => {
     try {
-        const label = ethers.BigNumber.from(labelhash(domain)).toString()
+        await getProvider()
+        const registrarContract = await getRegistrarContract()
+        const domainLabel = domain.replace('.theta', '');
+        const label = ethers.BigNumber.from(labelhash(domainLabel)).toString()
         const tx = await registrarContract.transferFrom(address, newAddress, label)
         tx.wait(1)
         return {
@@ -222,7 +281,9 @@ export const changeRegistrant = async(domain, newAddress) => {
 //Sets record address || equivalent to eth address in ens.
 export const setAddressRecord = async(domain, recordAddress) => {
     try {
-        const label = namehash(domain + ".theta")
+        await getProvider()
+        const resolverContract = await getResolverContract()
+        const label = namehash(domain + '.theta')
         const tx = await resolverContract['setAddr(bytes32,address)'](label, recordAddress, {gasPrice: 4000000000000, gasLimit: 20000000})
         tx.wait(1)
         return {
@@ -238,7 +299,9 @@ export const setAddressRecord = async(domain, recordAddress) => {
 //Sets url for domain.
 export const setText = async(domain, text, key) => {
     try {
-        const label = namehash(domain + ".theta")
+        await getProvider()
+        const resolverContract = await getResolverContract()
+        const label = namehash(domain + '.theta')
         const tx = await resolverContract['setText(bytes32,string,string)'](label, key, text, {gasPrice: 4000000000000, gasLimit: 20000000})
         tx.wait(1)
         return {
@@ -254,7 +317,9 @@ export const setText = async(domain, text, key) => {
 //Sets content hash. ipfs://dsfdbd...
 export const setContentHash = async(domain, content) => {
     try {
-        const label = namehash(domain + ".theta")
+        await getProvider()
+        const resolverContract = await getResolverContract()
+        const label = namehash(domain + '.theta')
         const encodedContenthash = encodeContenthash(content)
         const tx = await resolverContract.setContenthash(label, encodedContenthash)
         tx.wait(1)
@@ -272,6 +337,8 @@ export const setContentHash = async(domain, content) => {
 //Get reverse name of address. Returns nothing if user has not set it.
 export const getReverseName = async(reverseAddress) => {
     try {
+        await getProvider()
+        const resolverContract = await getResolverContract()
         const reverseNode = `${reverseAddress.slice(2)}.addr.reverse`
         const reverseNamehash = namehash(reverseNode)
         const domain = await resolverContract.name(reverseNamehash)
@@ -294,12 +361,34 @@ export const getReverseName = async(reverseAddress) => {
     }
 }
 
+//Get raw reverse name of address.
+export const getRawReverseName = async(reverseAddress) => {
+    try {
+        await getProvider()
+        const resolverContract = await getResolverContract()
+        const reverseNode = `${reverseAddress.slice(2)}.addr.reverse`
+        const reverseNamehash = namehash(reverseNode)
+        const domain = await resolverContract.name(reverseNamehash)
+        return {
+            domain: domain
+        }
+    } catch (e) {
+        console.log(`Error getRawReverseName for resolverContract`, e)
+        return {
+            domain: null
+        }
+    }
+}
+
 //User sets the name for his address.
 export const setReverseName = async(name, address) => {
     try {
-        const ownerOfDomain = await getController(name.replace(".theta", ""))
+        const label = name.replace('.theta', '');
+        const ownerOfDomain = await getController(label)
         if (ownerOfDomain.controller == address) {
-            const tx = await reverseRegistrarContract.setName(name)
+            await getProvider()
+            const reverseRegistrarContract = await getReverseRegistrarContract()
+            const tx = await reverseRegistrarContract.setName(label)
             tx.wait(1)
             return {
                 tx: tx
@@ -321,8 +410,10 @@ export const setReverseName = async(name, address) => {
 
 export const setBitcoinAddress = async(domain, BTCaddress) => {
     try {
+        await getProvider()
+        const resolverContract = await getResolverContract()
         const data = formatsByCoinType[0].decoder(BTCaddress)
-        const name = namehash(domain + ".theta")
+        const name = namehash(domain + '.theta')
         const tx = await resolverContract['setAddr(bytes32,uint256,bytes)'](name, 0, data)
         tx.wait(1)
         return {
@@ -338,7 +429,9 @@ export const setBitcoinAddress = async(domain, BTCaddress) => {
 
 export const getBitcoinAddress = async(domain) => {
     try {
-        const name = namehash(domain + ".theta")
+        await getProvider()
+        const resolverContract = await getResolverContract()
+        const name = namehash(domain + '.theta')
         const data = await resolverContract['addr(bytes32,uint256)'](name, 0)
         if (data == "0x") {
             return {
@@ -357,9 +450,11 @@ export const getBitcoinAddress = async(domain) => {
     }
 }
 
-export const getPrice = async(_name) => {
+export const getPrice = async(domain) => {
     try {
-        const _cost = await controllerContract.rentPrice(_name)
+        await getProvider()
+        const controllerContract = await getControllerContract()
+        const _cost = await controllerContract.rentPrice(domain)
         const price = ethers.BigNumber.from(_cost).toString()
         return {
             price: ethers.utils.formatEther(price)
@@ -371,4 +466,38 @@ export const getPrice = async(_name) => {
         }
     }
 
+}
+
+export const getTokenId = async(domain) => {
+    try {
+        const label = domain.replace('.theta', '')
+        const labelHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(label))
+        const tokenId = ethers.BigNumber.from(labelHash).toString()
+        return {
+            tokenId: tokenId
+        }
+    } catch (e) {
+        console.log(`Error getTokenId`, e)
+        return {
+            tokenId: null
+        }
+    }
+}
+
+export const reclaimControl = async(domain, ownerAddress) => {
+    try {
+        await getProvider()
+        const registrarContract = await getRegistrarContract()
+        const tokenId = await getTokenId(domain)
+        const tx = await registrarContract.reclaim(tokenId.tokenId, ownerAddress)
+        tx.wait(1)
+        return {
+            tx: tx
+        }
+    } catch (e) {
+        console.log(`Error reclaim for registrarContract`, e)
+        return {
+            tx: null
+        }
+    }
 }
