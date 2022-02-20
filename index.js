@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { labelhash, namehash, decodeContenthash, encodeContenthash, isAddress } from "./utils/utils";
 import { formatsByCoinType } from '@ensdomains/address-encoder';
 const { toChecksumAddress } = require('ethereum-checksum-address')
+const ethNamehash = require('eth-ens-namehash');
 
 const registrarABI = require("./contracts/BaseRegistrarImplementation.json")
 const registryABI = require("./contracts/ENSregistryABI.json")
@@ -343,7 +344,8 @@ export const getReverseNames = async(addresses, provider, extension) => {
             extension = 'theta'
         }
         const reversedNames = await reverseRecordsContract.getNames(addressesToReverse, extension)
-        addresses.forEach((key, i) => result[key] = reversedNames[i])
+        const validReversedNames = reversedNames.map((n) => { return ethNamehash.normalize(n) === n ? n : '' })
+        addresses.forEach((key, i) => result[key] = validReversedNames[i])
         return result
     } catch (e) {
         console.log(`Error getReverseNames for reverseRecordsContract`, e)

@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "@ensdomains/address-encoder": "^0.2.15",
+    "eth-ens-namehash": "^2.0.8",
     "ethereum-checksum-address": "^0.0.7",
     "ethers": "^5.5.2"
   },
