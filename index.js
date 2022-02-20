@@ -330,7 +330,7 @@ export const getReverseName = async(reverseAddress, provider) => {
             const addressRecord = await getAddressRecord(domain, provider)
             if (addressRecord.addressRecord == checksummedAddress) {
                 return {
-                    domain: domain
+                    domain: domain + '.theta'
                 }
             }
         }
@@ -353,7 +353,7 @@ export const getRawReverseName = async(reverseAddress, provider) => {
         const reverseNamehash = namehash(reverseNode)
         const domain = await resolverContract.name(reverseNamehash)
         return {
-            domain: domain
+            domain: domain + '.theta'
         }
     } catch (e) {
         console.log(`Error getRawReverseName for resolverContract`, e)
