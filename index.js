@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { labelhash, namehash, decodeContenthash, encodeContenthash } from "./utils/utils";
+import { labelhash, namehash, decodeContenthash, encodeContenthash, isAddress } from "./utils/utils";
 import { formatsByCoinType } from '@ensdomains/address-encoder';
 const { toChecksumAddress } = require('ethereum-checksum-address')
 
@@ -8,6 +8,7 @@ const registryABI = require("./contracts/ENSregistryABI.json")
 const resolverABI = require("./contracts/PublicResolver.json")
 const controllerABI = require("./contracts/RegistrarController.json")
 const reverseABI = require("./contracts/ReverseRegistrar.json")
+const reverseRecordsABI = require("./contracts/ReverseRecords.json")
 
 //mainnet
 const ensResolver = "0x9f0a9D6788FA98E50Ed1cA062abd1F69BC6C3A12"
@@ -47,6 +48,13 @@ const getControllerContract = async(provider) => {
     return new ethers.Contract("0x914895D9AD338A7060203acE274EBa682850cA3F", controllerABI, provider)
     //testnet
     // return new ethers.Contract("0x8ff4635F7bC36c08FbD68926A90d9f0bB7E9581C", controllerABI, provider)
+}
+
+const getReverseRecordsContract = async(provider) => {
+    //Mainnet
+    return new ethers.Contract("0xE6E9371993126e67B38041c2eE032480009AAd8C", reverseRecordsABI, provider)
+    //Testnet
+    // return new ethers.Contract("0xf19fa56Ab9dB777A28b458e7FBfa4f4b972cF2C1", reverseRecordsABI, provider)
 }
 
 //Get signer address from provider  
@@ -316,6 +324,32 @@ export const setContentHash = async(domain, content, provider) => {
             tx: null
         }
     }
+}
+
+export const getReverseNames = async(addresses, provider, extension) => {
+    try {
+        const reverseRecordsContract = await getReverseRecordsContract(provider)
+        let addressesToReverse = []
+        let result = {}
+        for (const address of addresses) {
+            if (isAddress(address)) {
+                const checksummedAddress = toChecksumAddress(address)
+                addressesToReverse.push(checksummedAddress)
+            } else {
+                addressesToReverse.push(address)
+            }
+        }
+        if (!extension) {
+            extension = 'theta'
+        }
+        const reversedNames = await reverseRecordsContract.getNames(addressesToReverse, extension)
+        addresses.forEach((key, i) => result[key] = reversedNames[i])
+        return result
+    } catch (e) {
+        console.log(`Error getReverseNames for reverseRecordsContract`, e)
+        return {}
+    }
+
 }
 
 //Get reverse name of address. Returns nothing if user has not set it.
