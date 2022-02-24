@@ -425,6 +425,32 @@ export const setReverseName = async(name, address, provider) => {
 
 }
 
+//User sets the name for his address.
+export const setReverseNameForAddr = async(name, address, owner, provider) => {
+    try {
+        const label = name.replace('.theta', '');
+        const ownerOfDomain = await getController(label, provider)
+        if (ownerOfDomain.controller == owner) {
+                const reverseRegistrarContract = await getReverseRegistrarContract(provider.getSigner())
+            const tx = await reverseRegistrarContract.setNameForAddr(address, owner, label)
+                return {
+                tx: tx
+            }
+        } else {
+            throw {
+                error: true,
+                message: "You are not the owner of this domain"
+            }
+        }
+    } catch (e) {
+        console.log(`Error setReverseNameForAddr for reverseRegistrarContract`, e)
+        return {
+            tx: null
+        }
+    }
+
+}
+
 export const setBitcoinAddress = async(domain, BTCaddress, provider) => {
     try {
         const resolverContract = await getResolverContract(provider.getSigner())
