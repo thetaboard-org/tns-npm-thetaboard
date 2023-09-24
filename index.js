@@ -12,50 +12,39 @@ const reverseABI = require("./contracts/ReverseRegistrar.json")
 const reverseRecordsABI = require("./contracts/ReverseRecords.json")
 
 //mainnet
-const ensResolver = "0x9f0a9D6788FA98E50Ed1cA062abd1F69BC6C3A12"
-//testnet
-// const ensResolver = "0x6f26Cf9D0968dA19d7AA85Cb69d088746bFA93B0"
+const ensResolver = "0x428101CB7a0D22587a6f098A518c36Af2a1b2E31"
+
 
 const getRegistryContract = async(provider) => {
     //mainnet
-    return new ethers.Contract("0x6644894555B8beC6BdC1B0E6617816aF90473ea2", registryABI, provider)
-    //testnet
-    // return new ethers.Contract("0xf1ea88e6AFE2fc6502Ef71aE794D7555C6aedA2d", registryABI, provider)
+    return new ethers.Contract("0xffC49362FB293BC063Fda33E537be608B357E787", registryABI, provider)
 }
 
 const getRegistrarContract = async(provider) => {
     //mainnet
-    return new ethers.Contract("0xBB4d339a7517c81C32a01221ba51CBd5d3461A94", registrarABI, provider)
-    //testnet
-    // return new ethers.Contract("0x7647BDAE510a2f0060C49D7beC783547b90DF2f9", registrarABI, provider)
+    return new ethers.Contract("0x7DaEEe00fb89d5c46B8e8387fd9aaC79D6910a06", registrarABI, provider)
 }
 
 const getResolverContract = async(provider) => {
     //mainnet
-    return new ethers.Contract("0x9f0a9D6788FA98E50Ed1cA062abd1F69BC6C3A12", resolverABI, provider)
-    //testnet
-    // return new ethers.Contract("0x6f26Cf9D0968dA19d7AA85Cb69d088746bFA93B0", resolverABI, provider)
+    return new ethers.Contract("0x428101CB7a0D22587a6f098A518c36Af2a1b2E31", resolverABI, provider)
 }
 
 const getReverseRegistrarContract = async(provider) => {
     //mainnet
-    return new ethers.Contract("0xc14b5b150eb7AD3c2BC17DCB9bA5c076b80f73e6", reverseABI, provider)
+    // return new ethers.Contract("0xc14b5b150eb7AD3c2BC17DCB9bA5c076b80f73e6", reverseABI, provider)
     //testnet
-    // return new ethers.Contract("0xa55706e1deC351eE44fF6493Bdb9e5BdA8588f20", reverseABI, provider)
+    return new ethers.Contract("0x3153ba37037965e1782a18D4e7759bfE259B5d67", reverseABI, provider)
 }
 
 const getControllerContract = async(provider) => {
     //mainnet
-    return new ethers.Contract("0x914895D9AD338A7060203acE274EBa682850cA3F", controllerABI, provider)
-    //testnet
-    // return new ethers.Contract("0x8ff4635F7bC36c08FbD68926A90d9f0bB7E9581C", controllerABI, provider)
+    return new ethers.Contract("0xF575B1086c6DcA1619B8Cc7D6Ddb4ad9D50bfdB1", controllerABI, provider)
 }
 
 const getReverseRecordsContract = async(provider) => {
     //Mainnet
-    return new ethers.Contract("0xE6E9371993126e67B38041c2eE032480009AAd8C", reverseRecordsABI, provider)
-    //Testnet
-    // return new ethers.Contract("0xf19fa56Ab9dB777A28b458e7FBfa4f4b972cF2C1", reverseRecordsABI, provider)
+    return new ethers.Contract("0x5aA729cB43FDcC26CA947Dfb1Cbe11cc8d245B9C", reverseRecordsABI, provider)
 }
 
 //Get signer address from provider  
@@ -429,10 +418,12 @@ export const setReverseName = async(name, address, provider) => {
 export const setReverseNameForAddr = async(name, address, owner, provider) => {
     try {
         const label = name.replace('.theta', '');
+        const checksummedAddress = toChecksumAddress(address)
+        const checksummedOwner = toChecksumAddress(owner)
         const ownerOfDomain = await getController(label, provider)
-        if (ownerOfDomain.controller == owner) {
-                const reverseRegistrarContract = await getReverseRegistrarContract(provider.getSigner())
-            const tx = await reverseRegistrarContract.setNameForAddr(address, owner, label)
+        if (ownerOfDomain.controller == checksummedOwner) {
+            const reverseRegistrarContract = await getReverseRegistrarContract(provider.getSigner())
+            const tx = await reverseRegistrarContract.setNameForAddr(checksummedAddress, checksummedOwner, label)
                 return {
                 tx: tx
             }
